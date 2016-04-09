@@ -3,25 +3,25 @@ Mirroring your requests
 
 ### Install
 
-Fetching with git:
+fetching with git:
 ```sh
 git clone https://github.com/DsXack/requests-mirror-server.git
 ```
 
-Or fetching with `go get`
+or fetching with `go get`
 ```sh
 go get github.com/DsXack/requests-mirror-server
 ```
 
 ### Running
 
-Running without params:
+running without params:
 ```sh
 requests-mirror-server
 Start listen 8000 port for requests
 ```
 
-Running with params:
+running with params:
 ```sh
 PORT=7000 requests-mirror-server
 Start listen 7000 port for requests
