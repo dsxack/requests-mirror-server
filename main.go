@@ -1,16 +1,17 @@
 package main
 
 import (
-	"net/http"
-	"log"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"os"
 )
 
 func main() {
 	port := os.Getenv("PORT")
 
-	if (len(port) <= 0) {
+	if len(port) <= 0 {
 		port = "8000"
 	}
 
@@ -19,52 +20,29 @@ func main() {
 		port,
 	)
 
-	log.Fatal(http.ListenAndServe(":" + port, http.HandlerFunc(func (response http.ResponseWriter, request *http.Request) {
+	log.Fatal(http.ListenAndServe(":"+port, http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		writer := io.MultiWriter(response, os.Stdout)
 
-		fmt.Printf(
-			"%s %s \n",
-			request.Method,
-			request.RequestURI,
-		);
-
-		response.Write([]byte(fmt.Sprintf(
+		fmt.Fprintf(
+			writer,
 			"%s %s %s\n",
 			request.Method,
 			request.RequestURI,
 			request.Proto,
-		)))
-		response.Write([]byte("Host: " + request.Host + "\n"))
+		)
+
+		writer.Write([]byte("Host: " + request.Host + "\n"))
 
 		for key := range request.Header {
-			response.Write([]byte(fmt.Sprintf(
+			fmt.Fprintf(
+				writer,
 				"%s: %s\n",
 				key,
 				request.Header.Get(key),
-			)))
+			)
 		}
 
-		buffer := make([]byte, 1024)
-		body_started := false
-
-		for {
-			n, err := request.Body.Read(buffer)
-
-			if (n > 0) {
-				if (!body_started) {
-					response.Write([]byte("\n\n"))
-					body_started = true
-				}
-
-				response.Write(buffer)
-
-				if f, ok := response.(http.Flusher); ok {
-					f.Flush()
-				}
-			}
-
-			if (err != nil) {
-				break
-			}
-		}
+		writer.Write([]byte("\n\n"))
+		io.Copy(writer, request.Body)
 	})))
 }
